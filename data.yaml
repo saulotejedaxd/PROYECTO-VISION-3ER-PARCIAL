@@ -1,0 +1,9 @@
+# Dataset para detectar perros y gatos.
+# La ruta debe apuntar a la carpeta que contiene images/ y labels/.
+path: datasets/mi_dataset
+train: images/train
+val: images/val
+
+names:
+  0: perro
+  1: gato
