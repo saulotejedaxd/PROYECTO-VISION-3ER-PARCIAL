@@ -1,235 +1,152 @@
-# Deteccion de perros y gatos con YOLO
+# Deteccion de perros y gatos con YOLOv8
 
 ## Integrantes
 
-- Nombre del integrante 1: **TU NOMBRE**
-- Nombre del integrante 2: **NOMBRE DE TU COMPANERO/A**  
-  Si el trabajo es individual, elimina esta linea.
+- Elsy Cuevas - 23310379
+- Saulo Tejeda - 23310404
 
 ## Descripcion del proyecto
 
-Este proyecto aplica conceptos de Vision Artificial mediante el entrenamiento de un modelo de la familia YOLO para detectar y diferenciar perros y gatos en imagenes. El repositorio contiene scripts para preparar datos, entrenar el modelo, probarlo con imagenes nuevas y guardar evidencias con bounding boxes.
+Este proyecto aplica conceptos de Vision Artificial mediante el entrenamiento de un modelo YOLOv8 para detectar y diferenciar perros y gatos en imagenes. El objetivo principal es reconocer automaticamente animales en fotografias mediante bounding boxes, mostrando si el objeto detectado corresponde a un perro o a un gato.
 
-## Estructura del repositorio
+El proyecto incluye codigo de entrenamiento, validacion del dataset, generacion de predicciones y evidencias visuales.
+
+## Dataset
+
+El dataset utilizado esta organizado en formato YOLOv8 con la siguiente estructura:
 
 ```text
-.
-+-- README.md
-+-- requirements.txt
-+-- data.yaml
-+-- src/
-|   +-- train.py
-|   +-- predict.py
-|   +-- validate_dataset.py
-+-- datasets/
-|   +-- README.md
-+-- evidencias/
-    +-- README.md
+datasets/mi_dataset/
+├── images/
+│   ├── train/
+│   └── val/
+└── labels/
+    ├── train/
+    └── val/
+```
+
+Las clases utilizadas son:
+
+```yaml
+0: perro
+1: gato
 ```
 
 ## Requisitos
 
-- Python 3.10 o superior
-- Git
-- Cuenta de GitHub
-- Dataset etiquetado en formato YOLO
-
-## Instalacion
-
-### Opcion A: Google Colab
-
-1. Sube esta carpeta a Google Drive.
-2. Abre el notebook `colab_entrenamiento_yolo.ipynb`.
-3. Activa GPU en Colab:
-
-```text
-Entorno de ejecucion > Cambiar tipo de entorno de ejecucion > GPU
-```
-
-4. Ejecuta las celdas en orden.
-5. Al finalizar, descarga o guarda las evidencias generadas en `evidencias/predicciones/`.
-
-### Opcion B: Computadora local
-
-1. Clonar el repositorio:
-
-```bash
-git clone URL_DE_TU_REPOSITORIO
-cd NOMBRE_DEL_REPOSITORIO
-```
-
-2. Crear un entorno virtual:
-
-```bash
-python -m venv .venv
-```
-
-3. Activar el entorno virtual:
-
-En Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-En macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-4. Instalar dependencias:
+Para ejecutar el proyecto se necesitan las siguientes dependencias:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Preparacion del dataset
+Tambien puede instalarse manualmente con:
 
-Este repositorio ya incluye un dataset combinado en formato YOLOv8 para detectar perros y gatos:
-
-- Entrenamiento: 522 imagenes.
-- Validacion: 82 imagenes.
-- Clases finales:
-  - `0`: perro
-  - `1`: gato
-
-El dataset esta en esta estructura:
-
-```text
-datasets/mi_dataset/
-+-- images/
-|   +-- train/
-|   +-- val/
-+-- labels/
-    +-- train/
-    +-- val/
+```bash
+pip install ultralytics opencv-python PyYAML tqdm
 ```
 
-Cada imagen debe tener un archivo `.txt` con el mismo nombre dentro de `labels`. Cada linea del archivo de etiquetas usa el formato:
+## Ejecucion del proyecto
 
-```text
-clase x_centro y_centro ancho alto
-```
-
-Las coordenadas deben estar normalizadas entre 0 y 1.
-
-Antes de entrenar, editar `data.yaml` con:
-
-- Ruta del dataset.
-- Numero de clases.
-- Nombre de las clases.
-
-Ejemplo:
-
-```yaml
-path: datasets/mi_dataset
-train: images/train
-val: images/val
-names:
-  0: perro
-  1: gato
-```
-
-## Validar dataset
-
-Para revisar que las imagenes tengan etiquetas correspondientes:
+### 1. Validar el dataset
 
 ```bash
 python src/validate_dataset.py --dataset datasets/mi_dataset
 ```
 
-## Entrenamiento del modelo
+### 2. Entrenar el modelo YOLOv8
 
-Para entrenar YOLOv8:
-
-```bash
-python src/train.py --data data.yaml --model yolov8n.pt --epochs 50 --imgsz 640
-```
-
-El entrenamiento genera resultados en:
-
-```text
-runs/detect/
-```
-
-El archivo principal del modelo entrenado normalmente queda en:
-
-```text
-runs/detect/train/weights/best.pt
-```
-
-## Pruebas con imagenes nuevas
-
-Para probar el modelo con imagenes:
+El entrenamiento usado en el notebook es ligero para poder ejecutarse en Jupyter/GitHub Codespaces:
 
 ```bash
-python src/predict.py --weights runs/detect/train/weights/best.pt --source datasets/mi_dataset/images/val --conf 0.25
+python src/train.py --data data.yaml --model yolov8n.pt --epochs 1 --imgsz 320 --batch 4
 ```
 
-Las imagenes con bounding boxes se guardan en:
+Si se cuenta con GPU, se puede aumentar el entrenamiento:
+
+```bash
+python src/train.py --data data.yaml --model yolov8n.pt --epochs 50 --imgsz 640 --batch 16
+```
+
+### 3. Generar predicciones
+
+```bash
+python src/predict.py --weights runs/detect/train/weights/best.pt --source datasets/mi_dataset/images/val --conf 0.25 --output evidencias/predicciones
+```
+
+Si el entrenamiento se guarda en otra carpeta, por ejemplo `train5`, se debe usar la ruta correspondiente:
+
+```bash
+python src/predict.py --weights runs/detect/train5/weights/best.pt --source datasets/mi_dataset/images/val --conf 0.25 --output evidencias/predicciones
+```
+
+## Evidencias
+
+Las imagenes con detecciones se guardan en:
 
 ```text
 evidencias/predicciones/
 ```
 
-## Caso de estudio: aplicacion practica en la industria
+En esta carpeta se encuentran imagenes de prueba donde el modelo marca perros y gatos con bounding boxes.
+
+## Caso de estudio: busqueda de perros y gatos desaparecidos
 
 ### Problema a resolver
 
-En refugios, veterinarias o centros de monitoreo animal, puede ser necesario identificar automaticamente si en una zona aparece un perro o un gato. La revision manual de camaras puede tomar mucho tiempo, especialmente si hay varias jaulas, patios o areas de observacion. El objetivo del sistema es usar una camara y un modelo YOLO entrenado para detectar perros y gatos en tiempo real.
+En muchas comunidades es comun que perros y gatos se extravien. La busqueda normalmente depende de carteles, publicaciones en redes sociales y recorridos manuales por la zona. Este proceso puede ser lento, desorganizado y depende de que una persona reconozca visualmente al animal.
+
+El modelo desarrollado podria utilizarse como apoyo para identificar perros y gatos en imagenes capturadas por camaras de seguridad, camaras comunitarias o fotografias enviadas por ciudadanos. De esta forma, se podria acelerar la busqueda de animales desaparecidos al detectar automaticamente la presencia de perros o gatos en distintas zonas.
 
 ### Hardware propuesto
 
-El sistema propuesto estaria compuesto por:
+El sistema podria integrarse con:
 
-- Una camara RGB instalada en una jaula, patio, pasillo o zona de observacion.
-- Iluminacion LED constante para evitar sombras y variaciones fuertes de luz.
-- Una computadora, Jetson Nano, Raspberry Pi con acelerador o PC con GPU para ejecutar el modelo YOLO.
-- Un sistema de registro conectado a una base de datos o panel de monitoreo.
-- Una alarma, notificacion o sistema de apertura/cierre automatico si se requiere separar animales por zona.
+- Camaras de seguridad instaladas en calles, parques, veterinarias o refugios.
+- Camaras domesticas o comunitarias conectadas a internet.
+- Una computadora o servidor local encargado de procesar las imagenes.
+- Un sistema web o aplicacion movil para consultar detecciones.
+- Una base de datos con reportes de animales desaparecidos.
+- Notificaciones por correo, mensaje o aplicacion cuando se detecte un posible perro o gato en una zona registrada.
 
 ### Flujo de funcionamiento
 
-1. La camara captura imagenes o video de la zona de observacion.
-2. La imagen se envia al procesador donde esta cargado el modelo YOLO entrenado.
-3. YOLO detecta perros y gatos y genera bounding boxes con una confianza.
-4. Si la confianza supera el umbral definido, el sistema registra la deteccion.
-5. El sistema puede mostrar la deteccion en un panel, guardar evidencia o enviar una alerta.
-6. En un caso mas avanzado, podria activar una puerta automatica para separar areas segun el tipo de animal.
-7. Las detecciones se guardan para auditoria, conteo de animales y mejora futura del modelo.
+1. Una persona reporta un perro o gato desaparecido en una plataforma.
+2. El sistema recibe imagenes de camaras o fotografias subidas por usuarios.
+3. El modelo YOLOv8 analiza cada imagen.
+4. Si detecta un perro o gato, genera una bounding box y clasifica el animal.
+5. La deteccion se guarda como evidencia con fecha, hora y ubicacion aproximada.
+6. El sistema compara la deteccion con reportes existentes.
+7. Si existe una posible coincidencia, se envia una alerta al dueno o al refugio.
+8. Las imagenes guardadas pueden revisarse manualmente para confirmar si se trata del animal desaparecido.
 
-### Beneficios esperados
+### Beneficios
 
-- Identificacion automatica de perros y gatos.
-- Monitoreo mas rapido de zonas con varios animales.
-- Evidencia visual de los resultados.
-- Posibilidad de operar en tiempo real.
-- Mejora continua al recolectar nuevas imagenes del proceso.
+- Acelera la busqueda de perros y gatos extraviados.
+- Reduce el tiempo de revision manual de imagenes.
+- Permite usar camaras ya existentes en comunidades o refugios.
+- Genera evidencias visuales para confirmar posibles avistamientos.
+- Puede apoyar a refugios, veterinarias y grupos de rescate animal.
 
 ### Limitaciones
 
-- El modelo depende de la calidad y variedad del dataset.
-- Cambios de iluminacion, angulo de camara, fondo o postura del animal pueden afectar el rendimiento.
-- Es necesario reentrenar el modelo si se agregan nuevas clases o si el entorno cambia mucho.
+- El modelo solo diferencia entre perro y gato, no identifica a un animal especifico por nombre.
+- La precision puede bajar si la imagen esta borrosa, oscura o el animal aparece parcialmente.
+- Para reconocer animales especificos se necesitarian mas datos, como color, tamano, raza o comparacion con imagenes del reporte.
+- El sistema debe cuidar la privacidad si se usan camaras en espacios publicos o privados.
 
-## Evidencias
+## Archivos principales del repositorio
 
-La carpeta `evidencias/` debe contener imagenes o videos generados por el modelo donde se observen las detecciones con bounding boxes.
+```text
+README.md
+requirements.txt
+data.yaml
+colab_entrenamiento_yolo.ipynb
+src/
+datasets/
+evidencias/
+```
 
-Ejemplos esperados:
+## Conclusion
 
-- `evidencias/predicciones/imagen_001.jpg`
-- `evidencias/predicciones/imagen_002.jpg`
-- `evidencias/video_prueba.mp4`
-
-## Entrega en Classroom
-
-Ambos integrantes deben enviar exactamente la misma URL del repositorio de GitHub:
-
-1. Entrar a Classroom.
-2. Ir a "Tu trabajo".
-3. Seleccionar "Anadir o crear".
-4. Elegir "Enlace".
-5. Pegar la URL del repositorio compartido.
-6. Hacer clic en "Entregar".
+El proyecto demuestra como un modelo YOLOv8 puede entrenarse para detectar perros y gatos en imagenes. Aunque el modelo es una version academica, su aplicacion puede extenderse a un sistema real de apoyo para la busqueda de mascotas desaparecidas, integrando camaras, almacenamiento de evidencias y alertas para los usuarios.
